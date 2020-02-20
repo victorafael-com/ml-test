@@ -15,17 +15,22 @@ import matplotlib.pyplot as plt
 
 #Dataset Import
 dataset = pd.read_csv('data/train.csv') #No need to change =P
+testdata = pd.read_csv('data/test.csv')
 
 #print(dataset.head(10))
 
 X = dataset.iloc[:,:20].values
 Y = dataset.iloc[:,20:21].values
 
+X_t = dataset.iloc[:,:20].values
+Y_t = dataset.iloc[:,20:21].values
+
 #Standard Scaler
 #fits the data between -1 and 1
 
 sc = StandardScaler()
 X = sc.fit_transform(X)
+X_t = sc.fit_transform(X_t)
 from sklearn.model_selection import train_test_split
 
 #One hot encoder:
@@ -36,8 +41,10 @@ from sklearn.model_selection import train_test_split
 
 ohe = OneHotEncoder()
 Y = ohe.fit_transform(Y).toarray()
+Y_t = ohe.fit_transform(Y_t).toarray()
 
-X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.1)
+
+#X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.1)
 
 #Create neural network
 #Sequential means each layer output is used by input from the next layer
@@ -55,16 +62,15 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 #trains without validating with test data 
 #history = model.fit(X_train, Y_train, epochs=100, batch_size=64)
 #tranins validating with test data
-history = model.fit(X_train, Y_train, validation_data = (X_test, Y_test), epochs=100, batch_size=64)
+history = model.fit(X, Y, validation_data = (X_t, Y_t), epochs=100, batch_size=64)
 
 #test the training
-Y_pred = model.predict(X_test)
+Y_pred = model.predict(X_t)
 pred = list()
+test = list()
 for i in range(len(Y_pred)):
     pred.append(np.argmax(Y_pred[i]))
-test = list()
-for i in range(len(Y_test)):
-    test.append(np.argmax(Y_test[i]))
+    test.append(np.argmax(Y_t[i]))
 
 a = accuracy_score(pred, test)
 print('Accuracy result: ', a*100,'%')
