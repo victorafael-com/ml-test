@@ -8,37 +8,72 @@ from sklearn.metrics import accuracy_score
 
 model = load_model("model_trained.h5")
 
-data = pd.read_csv('data/test.csv') #No need to change =P
-
-X = data.iloc[:,:20].values
-Y = data.iloc[:,20:21].values
-
-labels = ["$30 - $100", "$100 - $210", "$210 - $300", "$300+"]
-
+dataTrain = pd.read_csv('data/train.csv') #No need to change =P
+X_train = dataTrain.iloc[:,:20].values
 #fits data
 sc = StandardScaler()
-X = sc.fit_transform(X)
+sc.fit(X_train)
 
-#ohe = OneHotEncoder()
-#Y = ohe.fit_transform(Y).toarray()
+
+data = pd.read_csv('data/test.csv') #No need to change =P
+
+X = data.iloc[:,1:21].values
 
 line = random.randrange(0, len(X))
 
 print("testing line ", line + 1, "/", len(X))
-x_val = X[line]
-y_val = Y[line]
 
-print("Expected result on this line: ", labels[y_val[0]])
+labels = ["$30 - $100", "$100 - $210", "$210 - $300", "$300+"]
 
-res = model.predict(X)
 
-loaded = list()
-values = list()
-for i in range(len(res)):
-    loaded.append(np.argmax(Y[i]))
-    values.append(np.argmax(res[i]))
+X_line = data.iloc[line:line+1,1:21].values
 
-a = accuracy_score(loaded, values)
+X_fit = sc.transform(X_line)
 
-print("Got: ", labels[ values[line] ])
-print("overall accuracy: ", a * 100, "%")
+res = model.predict(X_fit)
+#
+#loaded = list()
+#values = list()
+#for i in range(len(res)):
+#    loaded.append(Y[i])
+#    values.append(np.argmax(res[i]))
+#
+
+print("You requested info about this mobile phone:")
+
+heads = data.columns
+
+#for i in range(len(heads) - 1):
+#    pre = "#{:02d}:".format(i)
+#    print(pre, heads[i+1], ":", X_line[0][i])
+
+print("\n##############################")
+print("# PRICE RANGE:", labels[np.argmax(res[0])])
+print("##############################\n")
+
+print("enabling bluetooth, 4g, 3g and touch support would be this price:")
+
+enables = [1,5,17,18,19]
+
+for i in range(len(enables)):
+    X_line[0][enables[i]] = 1.0
+
+X_line[0][0] = 1700
+X_line[0][2] = 2
+X_line[0][9] = 6
+
+X_custom = sc.transform(X_line)
+
+# for i in range(len(X_custom[0])):
+    # X_custom[0][i] = X_custom[0][1] * -1
+
+res2 = model.predict(X_custom)
+
+
+#for i in range(len(heads) - 1):
+#    pre = "#{:02d}:".format(i)
+#    print(pre, heads[i+1], ":", X_line[0][i])
+
+print("\n##############################")
+print("# PRICE RANGE:", labels[np.argmax(res2[0])])
+print("##############################\n")
